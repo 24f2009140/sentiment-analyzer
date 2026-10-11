@@ -1,9 +1,19 @@
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import re
 
 app = FastAPI()
+
+# Allow the assignment evaluator to call the API from another origin.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class SentimentRequest(BaseModel):
     sentences: list[str]
@@ -13,19 +23,18 @@ love loved lovely like liked likes great excellent amazing awesome
 good happy wonderful fantastic best perfect beautiful enjoy enjoyed
 delightful brilliant positive pleased success successful excited glad
 thankful thanks recommend win winning impressive superb outstanding
-fun helpful nice fantastic favorite favourite incredible better
-beautifully smile cheerful satisfied easy convenient reliable
-appreciate appreciated enjoy joyful fantastic adore adorable
+fun helpful nice favorite favourite incredible better smile cheerful
+satisfied easy convenient reliable appreciate appreciated joyful adore
 """.split())
 
 negative = set("""
 hate hated terrible awful bad worst horrible sad angry disappointed
 disappointing poor ugly boring annoying annoyed fail failed failure
 broken useless painful difficult wrong problem problems frustrated
-frustrating upset unhappy depressed fear scared regret disgusting
-slow rude complaint complaints loss lose losing error errors stressful
+frustrating upset unhappy depressed fear scared regret disgusting slow
+rude complaint complaints loss lose losing error errors stressful
 damaged disaster pathetic miserable unpleasant inconvenient unfortunate
-worse worst dislike disliked sadly unfortunately irritating irritating
+worse dislike disliked sadly unfortunately irritating
 """.split())
 
 negations = {
@@ -63,6 +72,7 @@ def classify(sentence: str) -> str:
 
     if any(x in sentence for x in ["😊", "😍", "❤️", "😃", "😁"]):
         score += 2
+
     if any(x in sentence for x in ["😢", "😭", "😡", "😞", "💔"]):
         score -= 2
 
